@@ -1,0 +1,12 @@
+/Users/parsa/Documents/My Repos/DotNet/ParsaKarami/ParsaKarami/Libraries/EndlessSudoku/bin/Debug/net10.0/EndlessSudoku.deps.json
+/Users/parsa/Documents/My Repos/DotNet/ParsaKarami/ParsaKarami/Libraries/EndlessSudoku/bin/Debug/net10.0/EndlessSudoku.dll
+/Users/parsa/Documents/My Repos/DotNet/ParsaKarami/ParsaKarami/Libraries/EndlessSudoku/bin/Debug/net10.0/EndlessSudoku.pdb
+/Users/parsa/Documents/My Repos/DotNet/ParsaKarami/ParsaKarami/Libraries/EndlessSudoku/obj/Debug/net10.0/EndlessSudoku.GeneratedMSBuildEditorConfig.editorconfig
+/Users/parsa/Documents/My Repos/DotNet/ParsaKarami/ParsaKarami/Libraries/EndlessSudoku/obj/Debug/net10.0/EndlessSudoku.AssemblyInfoInputs.cache
+/Users/parsa/Documents/My Repos/DotNet/ParsaKarami/ParsaKarami/Libraries/EndlessSudoku/obj/Debug/net10.0/EndlessSudoku.AssemblyInfo.cs
+/Users/parsa/Documents/My Repos/DotNet/ParsaKarami/ParsaKarami/Libraries/EndlessSudoku/obj/Debug/net10.0/EndlessSudoku.csproj.CoreCompileInputs.cache
+/Users/parsa/Documents/My Repos/DotNet/ParsaKarami/ParsaKarami/Libraries/EndlessSudoku/obj/Debug/net10.0/EndlessSudoku.sourcelink.json
+/Users/parsa/Documents/My Repos/DotNet/ParsaKarami/ParsaKarami/Libraries/EndlessSudoku/obj/Debug/net10.0/EndlessSudoku.dll
+/Users/parsa/Documents/My Repos/DotNet/ParsaKarami/ParsaKarami/Libraries/EndlessSudoku/obj/Debug/net10.0/refint/EndlessSudoku.dll
+/Users/parsa/Documents/My Repos/DotNet/ParsaKarami/ParsaKarami/Libraries/EndlessSudoku/obj/Debug/net10.0/EndlessSudoku.pdb
+/Users/parsa/Documents/My Repos/DotNet/ParsaKarami/ParsaKarami/Libraries/EndlessSudoku/obj/Debug/net10.0/ref/EndlessSudoku.dll

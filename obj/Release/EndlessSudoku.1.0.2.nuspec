@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
+  <metadata>
+    <id>EndlessSudoku</id>
+    <version>1.0.2</version>
+    <authors>Parsa Karami</authors>
+    <description>Sudoku generation library for C#</description>
+    <repository type="git" commit="d49b3d48d203f62f4802af24a083f38294bc4b25" />
+    <dependencies>
+      <group targetFramework="net8.0" />
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="/Users/parsa/Documents/My Repos/DotNet/ParsaKarami/ParsaKarami/Libraries/EndlessSudoku/bin/Release/net8.0/EndlessSudoku.dll" target="lib/net8.0/EndlessSudoku.dll" />
+  </files>
+</package>
