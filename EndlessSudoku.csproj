@@ -5,11 +5,14 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <PackageId>EndlessSudoku</PackageId>
-    <Version>1.0.5</Version>
+    <Version>1.0.6</Version>
     <Authors>Parsa Karami</Authors>
     <Description>Sudoku generation library for C#</Description>
     <PackageOutputPath>./nupkg</PackageOutputPath>
     <RepositoryUrl>https://github.com/Parsakarami/EndlessSudokuLibrary</RepositoryUrl>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <PackageTags>sudoku;game;engine</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/Parsakarami/EndlessSudokuLibrary</PackageProjectUrl>
   </PropertyGroup>
 </Project>
