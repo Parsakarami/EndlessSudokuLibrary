@@ -3,17 +3,19 @@ name: Publish NuGet Package
 
 on:
   push:
-    branches:
-      - main
-  workflow_dispatch:
+    tags:
+      - 'v*.*.*'
 
 permissions:
   contents: read
-  packages: write
 
 jobs:
   publish:
     runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      id-token: write
 
     steps:
       - name: Checkout repository
@@ -24,24 +26,28 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
-      - name: Restore
-        run: dotnet restore
+      - name: Restore dependencies
+        run: dotnet restore ./EndlessSudoku.csproj
 
       - name: Build
-        run: dotnet build -c Release --no-restore
+        run: dotnet build ./EndlessSudoku.csproj -c Release --no-restore
 
-      - name: Pack
-        run: dotnet pack -c Release --no-build -o ./packages
-
-      - name: Publish to GitHub Packages
+      - name: Pack NuGet package
         run: |
-          dotnet nuget add source \
-            --username "${{ github.actor }}" \
-            --password "${{ secrets.GITHUB_TOKEN }}" \
-            --store-password-in-clear-text \
-            --name github \
-            "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json"
+          dotnet pack ./SudokuEngine.csproj \
+            -c Release \
+            --no-build \
+            --output ./artifacts \
+            -p:PackageVersion="${GITHUB_REF_NAME#v}"
 
-          dotnet nuget push "./packages/*.nupkg" \
-            --source github \
-            --skip-duplicate
+      - name: NuGet login (OIDC)
+        uses: NuGet/login@v1
+        id: login
+        with:
+          user: ${{ secrets.NUGET_USER }}
+
+      - name: Publish to NuGet.org
+        run: |
+          dotnet nuget push "./artifacts/*.nupkg" \
+            --api-key "${{ steps.login.outputs.NUGET_API_KEY }}" \
+            --source https://api.nuget.org/v3/index.json
