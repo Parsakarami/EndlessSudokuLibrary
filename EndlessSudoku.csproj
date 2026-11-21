@@ -9,6 +9,7 @@
     <Authors>Parsa Karami</Authors>
     <Description>Sudoku generation library for C#</Description>
     <PackageOutputPath>./nupkg</PackageOutputPath>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <RepositoryUrl>https://github.com/Parsakarami/EndlessSudokuLibrary</RepositoryUrl>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
   </PropertyGroup>
 </Project>
