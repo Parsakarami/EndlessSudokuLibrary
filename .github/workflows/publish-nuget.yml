@@ -34,7 +34,7 @@ jobs:
 
       - name: Pack NuGet package
         run: |
-          dotnet pack ./SudokuEngine.csproj \
+          dotnet pack ./EndlessSudoku.csproj \
             -c Release \
             --no-build \
             --output ./artifacts \
