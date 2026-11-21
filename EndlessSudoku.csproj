@@ -15,9 +15,9 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/Parsakarami/EndlessSudokuLibrary</PackageProjectUrl>
     
-    <PackageIcon>endless-sudoku-icon.svg</PackageIcon>
+    <PackageIcon>endless-sudoku-icon.png</PackageIcon>
   </PropertyGroup>
   <ItemGroup>
-        <None Include="endless-sudoku-icon.svg" Pack="true" PackagePath="\" />
+        <None Include="endless-sudoku-icon.png" Pack="true" PackagePath="\" />
   </ItemGroup>
 </Project>
