@@ -14,5 +14,10 @@
     <PackageTags>sudoku;game;engine</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/Parsakarami/EndlessSudokuLibrary</PackageProjectUrl>
+    
+    <PackageIcon>endless-sudoku-icon.svg</PackageIcon>
   </PropertyGroup>
+  <ItemGroup>
+        <None Include="endless-sudoku-icon.svg" Pack="true" PackagePath="\" />
+  </ItemGroup>
 </Project>
