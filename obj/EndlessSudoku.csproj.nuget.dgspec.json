@@ -5,7 +5,7 @@
   },
   "projects": {
     "/Users/parsa/Documents/My Repos/DotNet/Nuget/EndlessSudoku/EndlessSudokuLibrary/EndlessSudoku.csproj": {
-      "version": "1.1.2",
+      "version": "1.2.0",
       "restore": {
         "projectUniqueName": "/Users/parsa/Documents/My Repos/DotNet/Nuget/EndlessSudoku/EndlessSudokuLibrary/EndlessSudoku.csproj",
         "projectName": "EndlessSudoku",

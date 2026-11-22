@@ -1,0 +1,25 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
+  <metadata>
+    <id>EndlessSudoku</id>
+    <version>1.2.0</version>
+    <authors>Parsa Karami</authors>
+    <license type="expression">MIT</license>
+    <licenseUrl>https://licenses.nuget.org/MIT</licenseUrl>
+    <icon>endless-sudoku-icon.png</icon>
+    <readme>README.md</readme>
+    <projectUrl>https://github.com/Parsakarami/EndlessSudokuLibrary</projectUrl>
+    <description>Sudoku generator and solver for .NET. Generates 9x9 and 6x6 puzzles with difficulty 1-10, always with exactly one solution. Includes solving, validation, hints and board formatting.</description>
+    <tags>sudoku game engine puzzle generator solver</tags>
+    <repository type="git" url="https://github.com/Parsakarami/EndlessSudokuLibrary" commit="bc08e9a8a3ba1a43edfcb8f3520c0920201b9ebb" />
+    <dependencies>
+      <group targetFramework="net10.0" />
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="/Users/parsa/Documents/My Repos/DotNet/Nuget/EndlessSudoku/EndlessSudokuLibrary/bin/Release/net10.0/EndlessSudoku.dll" target="lib/net10.0/EndlessSudoku.dll" />
+    <file src="/Users/parsa/Documents/My Repos/DotNet/Nuget/EndlessSudoku/EndlessSudokuLibrary/bin/Release/net10.0/EndlessSudoku.xml" target="lib/net10.0/EndlessSudoku.xml" />
+    <file src="/Users/parsa/Documents/My Repos/DotNet/Nuget/EndlessSudoku/EndlessSudokuLibrary/endless-sudoku-icon.png" target="/endless-sudoku-icon.png" />
+    <file src="/Users/parsa/Documents/My Repos/DotNet/Nuget/EndlessSudoku/EndlessSudokuLibrary/README.md" target="/README.md" />
+  </files>
+</package>

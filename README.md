@@ -11,7 +11,7 @@
 [![.NET](https://img.shields.io/badge/.NET-10.0-512BD4?logo=dotnet)](https://dotnet.microsoft.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 
-🧩 9×9 and 6×6 boards &nbsp;·&nbsp; 🎚️ Difficulty 1–10 &nbsp;·&nbsp; ✅ Always one solution &nbsp;·&nbsp; 🎲 Repeatable with a seed
+🧩 9×9 and 6×6 boards &nbsp;·&nbsp; 🎚️ Difficulty 1–10 &nbsp;·&nbsp; ✅ Always one solution &nbsp;·&nbsp; 🧠 Solver & hints
 
 </div>
 
@@ -30,14 +30,12 @@ dotnet add package EndlessSudoku
 ```csharp
 using EndlessSudokuLibrary;
 
-var result = SudokuGenerator.Generate(new SudokuConfig
-{
-    Size = 9,
-    Difficulty = 5
-});
+var result = SudokuGenerator.Generate(size: 9, difficulty: 5);
 
 int[,] puzzle   = result.Puzzle;    // 0 = empty cell
 int[,] solution = result.Solution;
+
+Console.WriteLine(result);          // prints the puzzle
 ```
 
 ```
@@ -62,7 +60,13 @@ int[,] solution = result.Solution;
 | `Difficulty` | `1` – `10`    | `5`     |
 | `Seed`       | any `int`     | random  |
 
-The same `Seed` with the same settings always gives the same puzzle.
+Pass them directly, or use a `SudokuConfig`:
+
+```csharp
+var result = SudokuGenerator.Generate(new SudokuConfig { Size = 6, Difficulty = 3, Seed = 42 });
+```
+
+The same seed and settings always give the same puzzle. Every result has a `Seed`, so you can recreate even a random puzzle later.
 
 ## 🎚️ Difficulty
 
@@ -77,19 +81,47 @@ The same `Seed` with the same settings always gives the same puzzle.
 > At the hardest levels the puzzle may keep a few extra clues so it stays uniquely solvable.
 > Compare `result.Clues` with `result.TargetClues` to check.
 
-## 💡 Examples
-
-**Daily puzzle**: everyone gets the same puzzle today
+## 🎮 Game Helpers
 
 ```csharp
-int seed = int.Parse(DateTime.UtcNow.ToString("yyyyMMdd"));
-var daily = SudokuGenerator.Generate(new SudokuConfig { Difficulty = 6, Seed = seed });
+result.IsCorrect(row, col, value);     // is this the right digit?
+result.IsSolvedBy(board);              // has the player finished?
+
+var hint = result.GetHint(board);      // next move, or null if solved
+// hint.Row, hint.Column, hint.Value, hint.IsCorrection (true = fix a wrong digit)
+
+SudokuBoard.GetCandidates(board, row, col);   // possible digits, for pencil marks
 ```
 
-**Check a player's move**
+## 🧠 Solver
+
+Works with any 6×6 or 9×9 board, including ones you didn't generate.
 
 ```csharp
-bool correct = result.Solution[row, col] == value;
+int[,]? solved = SudokuSolver.Solve(board);   // null if there's no solution
+
+SudokuSolver.HasUniqueSolution(board);        // exactly one solution?
+SudokuSolver.IsValid(board);                  // no repeated digits?
+SudokuSolver.IsSolved(board);                 // full and valid?
+```
+
+## 💾 Save & Load
+
+```csharp
+string saved = SudokuBoard.ToCompactString(board);   // "563..92...84.26.37..."
+int[,] loaded = SudokuBoard.Parse(saved);
+
+string pretty = SudokuBoard.ToText(board);           // grid with box borders
+```
+
+## ⚡ Async & Batches
+
+```csharp
+// Run in the background so the UI stays responsive (supports cancellation)
+var result = await SudokuGenerator.GenerateAsync(new SudokuConfig { Difficulty = 9 });
+
+// Generate several puzzles at once
+var puzzles = SudokuGenerator.GenerateMany(new SudokuConfig { Difficulty = 4 }, count: 10);
 ```
 
 ---

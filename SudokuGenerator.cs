@@ -1,6 +1,4 @@
-﻿using System.Numerics;
-
-namespace EndlessSudokuLibrary;
+﻿namespace EndlessSudokuLibrary;
 
     /// <summary>Configuration for the generator.</summary>
     public sealed class SudokuConfig
@@ -21,6 +19,8 @@ namespace EndlessSudokuLibrary;
             if (Difficulty < 1 || Difficulty > 10)
                 throw new ArgumentOutOfRangeException(nameof(Difficulty), Difficulty, "Difficulty must be between 1 and 10.");
         }
+
+        internal SudokuConfig Clone() => new SudokuConfig { Size = Size, Difficulty = Difficulty, Seed = Seed };
     }
 
     /// <summary>The generated puzzle and its unique solution.</summary>
@@ -38,13 +38,121 @@ namespace EndlessSudokuLibrary;
         /// <summary>Number of clues the difficulty level was aiming for.</summary>
         public int TargetClues { get; }
 
-        internal SudokuResult(int[,] puzzle, int[,] solution, int clues, int targetClues)
+        /// <summary>Board size (6 or 9).</summary>
+        public int Size => Puzzle.GetLength(0);
+
+        /// <summary>The difficulty level (1..10) used to generate this puzzle.</summary>
+        public int Difficulty { get; }
+
+        /// <summary>
+        /// The seed used to generate this puzzle. Pass it back in <see cref="SudokuConfig.Seed"/>
+        /// (with the same size and difficulty) to generate the exact same puzzle again.
+        /// </summary>
+        public int Seed { get; }
+
+        internal SudokuResult(int[,] puzzle, int[,] solution, int clues, int targetClues, int difficulty, int seed)
         {
             Puzzle = puzzle;
             Solution = solution;
             Clues = clues;
             TargetClues = targetClues;
+            Difficulty = difficulty;
+            Seed = seed;
         }
+
+        /// <summary>True if <paramref name="value"/> is the correct digit for the given cell.</summary>
+        public bool IsCorrect(int row, int column, int value)
+        {
+            if (row < 0 || row >= Size) throw new ArgumentOutOfRangeException(nameof(row));
+            if (column < 0 || column >= Size) throw new ArgumentOutOfRangeException(nameof(column));
+            return Solution[row, column] == value;
+        }
+
+        /// <summary>True if <paramref name="board"/> is completely filled and matches the solution.</summary>
+        public bool IsSolvedBy(int[,] board)
+        {
+            EnsureSameSize(board);
+            for (int r = 0; r < Size; r++)
+                for (int c = 0; c < Size; c++)
+                    if (board[r, c] != Solution[r, c]) return false;
+            return true;
+        }
+
+        /// <summary>
+        /// Suggests the next move for a player's current <paramref name="board"/>.
+        /// A wrong digit is reported first (<see cref="SudokuHint.IsCorrection"/> = true).
+        /// Otherwise it picks the empty cell with the fewest possible digits, which is usually the easiest one to fill.
+        /// Returns null when the board is already solved.
+        /// </summary>
+        public SudokuHint? GetHint(int[,] board)
+        {
+            EnsureSameSize(board);
+            int n = Size;
+
+            for (int r = 0; r < n; r++)
+                for (int c = 0; c < n; c++)
+                {
+                    int v = board[r, c];
+                    if (v != 0 && v != Solution[r, c])
+                        return new SudokuHint(r, c, Solution[r, c], isCorrection: true);
+                }
+
+            int bestRow = -1, bestCol = -1, bestCount = int.MaxValue;
+            for (int r = 0; r < n && bestCount > 1; r++)
+                for (int c = 0; c < n; c++)
+                {
+                    if (board[r, c] != 0) continue;
+
+                    int count = System.Numerics.BitOperations.PopCount((uint)SudokuBoard.CandidateMask(board, r, c));
+                    if (count < bestCount)
+                    {
+                        bestRow = r;
+                        bestCol = c;
+                        bestCount = count;
+                        if (count == 1) break;
+                    }
+                }
+
+            return bestRow < 0 ? null : new SudokuHint(bestRow, bestCol, Solution[bestRow, bestCol], isCorrection: false);
+        }
+
+        /// <summary>The puzzle as readable text (see <see cref="SudokuBoard.ToText"/>).</summary>
+        public override string ToString() => SudokuBoard.ToText(Puzzle);
+
+        private void EnsureSameSize(int[,] board)
+        {
+            if (board == null) throw new ArgumentNullException(nameof(board));
+            if (board.GetLength(0) != Size || board.GetLength(1) != Size)
+                throw new ArgumentException($"Board must be {Size}x{Size}.", nameof(board));
+        }
+    }
+
+    /// <summary>A suggested move returned by <see cref="SudokuResult.GetHint"/>.</summary>
+    public sealed class SudokuHint
+    {
+        /// <summary>Row of the cell (0-based).</summary>
+        public int Row { get; }
+
+        /// <summary>Column of the cell (0-based).</summary>
+        public int Column { get; }
+
+        /// <summary>The correct digit for the cell.</summary>
+        public int Value { get; }
+
+        /// <summary>True if the cell currently holds a wrong digit that should be replaced.</summary>
+        public bool IsCorrection { get; }
+
+        internal SudokuHint(int row, int column, int value, bool isCorrection)
+        {
+            Row = row;
+            Column = column;
+            Value = value;
+            IsCorrection = isCorrection;
+        }
+
+        /// <inheritdoc />
+        public override string ToString() =>
+            $"{(IsCorrection ? "Fix" : "Fill")} [{Row}, {Column}] = {Value}";
     }
 
     /// <summary>Generates Sudoku puzzles that are guaranteed to have exactly one solution.</summary>
@@ -57,20 +165,32 @@ namespace EndlessSudokuLibrary;
         // How many times we restart the "remove cells" phase when the target isn't reached.
         private const int MaxAttempts = 50;
 
-        public static SudokuResult Generate(SudokuConfig config)
+        /// <summary>Generates a puzzle using the given configuration.</summary>
+        /// <exception cref="ArgumentNullException"><paramref name="config"/> is null.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">Size or difficulty is out of range.</exception>
+        public static SudokuResult Generate(SudokuConfig config) => Generate(config, CancellationToken.None);
+
+        /// <summary>Generates a puzzle. Shortcut for <see cref="Generate(SudokuConfig)"/>.</summary>
+        /// <param name="size">6 or 9.</param>
+        /// <param name="difficulty">1 (easy) to 10 (hard).</param>
+        /// <param name="seed">Optional seed for a reproducible puzzle.</param>
+        public static SudokuResult Generate(int size = 9, int difficulty = 5, int? seed = null) =>
+            Generate(new SudokuConfig { Size = size, Difficulty = difficulty, Seed = seed });
+
+        /// <summary>Generates a puzzle and stops early if <paramref name="cancellationToken"/> is cancelled.</summary>
+        /// <exception cref="OperationCanceledException">The operation was cancelled.</exception>
+        public static SudokuResult Generate(SudokuConfig config, CancellationToken cancellationToken)
         {
             if (config == null) throw new ArgumentNullException(nameof(config));
             config.Validate();
 
             int n = config.Size;
-            int boxRows = n == 9 ? 3 : 2;
-            int boxCols = 3;
-
-            Random rng = config.Seed.HasValue ? new Random(config.Seed.Value) : new Random();
-            var solver = new SudokuSolver(n, boxRows, boxCols);
+            int seed = config.Seed ?? Random.Shared.Next();
+            var rng = new Random(seed);
+            var engine = SudokuEngine.ForSize(n);
 
             // 1) Build a random, completely filled valid grid.
-            int[] solution = solver.GenerateFullGrid(rng);
+            int[] solution = engine.GenerateFullGrid(rng);
 
             // 2) Remove cells (keeping the solution unique) until we reach the difficulty's clue target.
             int target = TargetClues(n, config.Difficulty);
@@ -79,8 +199,10 @@ namespace EndlessSudokuLibrary;
 
             for (int attempt = 0; attempt < MaxAttempts; attempt++)
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 int[] puzzle = (int[])solution.Clone();
-                int clues = RemoveCells(puzzle, solver, rng, target);
+                int clues = RemoveCells(puzzle, engine, rng, target, cancellationToken);
 
                 if (clues < bestClues)
                 {
@@ -90,7 +212,46 @@ namespace EndlessSudokuLibrary;
                 if (bestClues <= target) break;
             }
 
-            return new SudokuResult(To2D(bestPuzzle, n), To2D(solution, n), bestClues, target);
+            return new SudokuResult(
+                SudokuBoard.To2D(bestPuzzle!, n), SudokuBoard.To2D(solution, n),
+                bestClues, target, config.Difficulty, seed);
+        }
+
+        /// <summary>
+        /// Generates a puzzle on a background thread, so UI apps (MAUI, WPF, Unity, ...) stay responsive.
+        /// </summary>
+        public static Task<SudokuResult> GenerateAsync(SudokuConfig config, CancellationToken cancellationToken = default)
+        {
+            if (config == null) throw new ArgumentNullException(nameof(config));
+            config.Validate();
+
+            var copy = config.Clone(); // later changes to config by the caller don't affect this call
+            return Task.Run(() => Generate(copy, cancellationToken), cancellationToken);
+        }
+
+        /// <summary>
+        /// Generates <paramref name="count"/> puzzles with the same size and difficulty.
+        /// If <see cref="SudokuConfig.Seed"/> is set, the whole set is reproducible.
+        /// </summary>
+        public static IReadOnlyList<SudokuResult> GenerateMany(SudokuConfig config, int count)
+        {
+            if (config == null) throw new ArgumentNullException(nameof(config));
+            config.Validate();
+            if (count < 0) throw new ArgumentOutOfRangeException(nameof(count), count, "Count cannot be negative.");
+
+            Random? seeds = config.Seed.HasValue ? new Random(config.Seed.Value) : null;
+            var results = new List<SudokuResult>(count);
+
+            for (int i = 0; i < count; i++)
+            {
+                results.Add(Generate(new SudokuConfig
+                {
+                    Size = config.Size,
+                    Difficulty = config.Difficulty,
+                    Seed = seeds?.Next()
+                }));
+            }
+            return results;
         }
 
         /// <summary>Maps difficulty 1..10 to a number of visible cells (linear interpolation).</summary>
@@ -106,7 +267,7 @@ namespace EndlessSudokuLibrary;
         /// Visits cells in random order and hides each one only if the puzzle still has exactly one solution.
         /// Returns the number of remaining clues.
         /// </summary>
-        private static int RemoveCells(int[] puzzle, SudokuSolver solver, Random rng, int targetClues)
+        private static int RemoveCells(int[] puzzle, SudokuEngine engine, Random rng, int targetClues, CancellationToken cancellationToken)
         {
             int[] order = new int[puzzle.Length];
             for (int i = 0; i < order.Length; i++) order[i] = i;
@@ -116,11 +277,12 @@ namespace EndlessSudokuLibrary;
             foreach (int idx in order)
             {
                 if (clues <= targetClues) break;
+                cancellationToken.ThrowIfCancellationRequested();
 
                 int backup = puzzle[idx];
                 puzzle[idx] = 0;
 
-                if (solver.HasUniqueSolution(puzzle))
+                if (engine.HasUniqueSolution(puzzle))
                     clues--;
                 else
                     puzzle[idx] = backup; // removing it would allow multiple solutions
@@ -135,173 +297,5 @@ namespace EndlessSudokuLibrary;
                 int j = rng.Next(i + 1);
                 (array[i], array[j]) = (array[j], array[i]);
             }
-        }
-
-        private static int[,] To2D(int[] flat, int n)
-        {
-            var result = new int[n, n];
-            for (int r = 0; r < n; r++)
-                for (int c = 0; c < n; c++)
-                    result[r, c] = flat[r * n + c];
-            return result;
-        }
-    }
-
-    /// <summary>
-    /// Bitmask-based backtracking solver (picks the most constrained cell first).
-    /// Used both to build a full grid and to count solutions (up to a limit).
-    /// </summary>
-    internal sealed class SudokuSolver
-    {
-        private readonly int _n;
-        private readonly int _boxRows;
-        private readonly int _boxCols;
-        private readonly int _fullMask;
-
-        private readonly int[] _cells;
-        private readonly int[] _rowMask;
-        private readonly int[] _colMask;
-        private readonly int[] _boxMask;
-        private readonly int[] _boxOf;
-
-        private int[] _snapshot;
-
-        public SudokuSolver(int n, int boxRows, int boxCols)
-        {
-            _n = n;
-            _boxRows = boxRows;
-            _boxCols = boxCols;
-            _fullMask = (1 << n) - 1;
-
-            _cells = new int[n * n];
-            _rowMask = new int[n];
-            _colMask = new int[n];
-            _boxMask = new int[n];
-            _boxOf = new int[n * n];
-
-            int boxesPerRow = n / boxCols;
-            for (int r = 0; r < n; r++)
-                for (int c = 0; c < n; c++)
-                    _boxOf[r * n + c] = (r / boxRows) * boxesPerRow + (c / boxCols);
-        }
-
-        /// <summary>Returns a random, fully solved grid.</summary>
-        public int[] GenerateFullGrid(Random rng)
-        {
-            Load(null);
-            Search(1, rng);
-            return _snapshot;
-        }
-
-        /// <summary>True if the grid is consistent and has exactly one solution.</summary>
-        public bool HasUniqueSolution(int[] grid)
-        {
-            if (!Load(grid)) return false;
-            return Search(2, null) == 1;
-        }
-
-        private bool Load(int[] grid)
-        {
-            Array.Clear(_cells, 0, _cells.Length);
-            Array.Clear(_rowMask, 0, _n);
-            Array.Clear(_colMask, 0, _n);
-            Array.Clear(_boxMask, 0, _n);
-
-            if (grid == null) return true;
-
-            for (int i = 0; i < grid.Length; i++)
-            {
-                int d = grid[i];
-                if (d == 0) continue;
-
-                int bit = 1 << (d - 1);
-                if ((Candidates(i) & bit) == 0) return false; // conflicting givens
-                Place(i, d);
-            }
-            return true;
-        }
-
-        private int Candidates(int idx)
-        {
-            int used = _rowMask[idx / _n] | _colMask[idx % _n] | _boxMask[_boxOf[idx]];
-            return _fullMask & ~used;
-        }
-
-        private void Place(int idx, int digit)
-        {
-            int bit = 1 << (digit - 1);
-            _cells[idx] = digit;
-            _rowMask[idx / _n] |= bit;
-            _colMask[idx % _n] |= bit;
-            _boxMask[_boxOf[idx]] |= bit;
-        }
-
-        private void Unplace(int idx, int digit)
-        {
-            int bit = ~(1 << (digit - 1));
-            _cells[idx] = 0;
-            _rowMask[idx / _n] &= bit;
-            _colMask[idx % _n] &= bit;
-            _boxMask[_boxOf[idx]] &= bit;
-        }
-
-        /// <summary>
-        /// Counts solutions up to <paramref name="limit"/>. When <paramref name="rng"/> is supplied,
-        /// digits are tried in random order and the first solution found is stored in _snapshot.
-        /// </summary>
-        private int Search(int limit, Random rng)
-        {
-            // Find the empty cell with the fewest candidates.
-            int best = -1, bestMask = 0, bestCount = int.MaxValue;
-            for (int i = 0; i < _cells.Length; i++)
-            {
-                if (_cells[i] != 0) continue;
-
-                int mask = Candidates(i);
-                int count = BitOperations.PopCount((uint)mask);
-                if (count == 0) return 0; // dead end
-
-                if (count < bestCount)
-                {
-                    best = i;
-                    bestMask = mask;
-                    bestCount = count;
-                    if (count == 1) break;
-                }
-            }
-
-            if (best < 0) // no empty cells: solved
-            {
-                if (rng != null) _snapshot = (int[])_cells.Clone();
-                return 1;
-            }
-
-            Span<int> digits = stackalloc int[_n];
-            int k = 0;
-            for (int m = bestMask; m != 0; m &= m - 1)
-                digits[k++] = BitOperations.TrailingZeroCount(m) + 1;
-
-            if (rng != null)
-            {
-                for (int i = k - 1; i > 0; i--)
-                {
-                    int j = rng.Next(i + 1);
-                    int tmp = digits[i];
-                    digits[i] = digits[j];
-                    digits[j] = tmp;
-                }
-            }
-
-            int found = 0;
-            for (int i = 0; i < k; i++)
-            {
-                int d = digits[i];
-                Place(best, d);
-                found += Search(limit - found, rng);
-                Unplace(best, d);
-
-                if (found >= limit) break;
-            }
-            return found;
         }
     }

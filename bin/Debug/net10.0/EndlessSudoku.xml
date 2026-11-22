@@ -1,0 +1,222 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>EndlessSudoku</name>
+    </assembly>
+    <members>
+        <member name="T:EndlessSudokuLibrary.SudokuBoard">
+            <summary>
+            Helpers for working with boards: printing, saving/loading as text, and listing possible digits.
+            Boards are <c>int[row, column]</c> with 0 for empty cells.
+            </summary>
+        </member>
+        <member name="M:EndlessSudokuLibrary.SudokuBoard.ToText(System.Int32[0:,0:])">
+            <summary>
+            Formats a board as a readable grid with box borders. Empty cells are shown as <c>.</c>
+            <code>
+            5 6 3 | . . 9 | 2 . .
+            . 8 4 | . 2 6 | . 3 7
+            ...
+            </code>
+            </summary>
+        </member>
+        <member name="M:EndlessSudokuLibrary.SudokuBoard.ToCompactString(System.Int32[0:,0:])">
+            <summary>
+            Formats a board as a single line (36 or 81 characters, <c>.</c> for empty cells), e.g. to save a game.
+            Load it back with <see cref="M:EndlessSudokuLibrary.SudokuBoard.Parse(System.String)"/>.
+            </summary>
+        </member>
+        <member name="M:EndlessSudokuLibrary.SudokuBoard.Parse(System.String)">
+            <summary>
+            Reads a board from text. Accepts the output of <see cref="M:EndlessSudokuLibrary.SudokuBoard.ToCompactString(System.Int32[0:,0:])"/> and <see cref="M:EndlessSudokuLibrary.SudokuBoard.ToText(System.Int32[0:,0:])"/>.
+            Digits are cell values, <c>.</c> or <c>0</c> is an empty cell; spaces, new lines and <c>| - +</c> are ignored.
+            The text must contain 36 cells (6x6) or 81 cells (9x9).
+            </summary>
+            <exception cref="T:System.FormatException">The text is not a valid board.</exception>
+        </member>
+        <member name="M:EndlessSudokuLibrary.SudokuBoard.GetCandidates(System.Int32[0:,0:],System.Int32,System.Int32)">
+            <summary>
+            Returns the digits that can go in a cell without breaking a rule, based on the digits already on the board
+            (useful for pencil marks). Returns an empty array for a filled cell.
+            </summary>
+        </member>
+        <member name="M:EndlessSudokuLibrary.SudokuBoard.BoxShape(System.Int32)">
+            <summary>Box shape for a board size: 9 -> 3x3, 6 -> 2 rows x 3 columns.</summary>
+        </member>
+        <member name="M:EndlessSudokuLibrary.SudokuBoard.Validate(System.Int32[0:,0:],System.String)">
+            <summary>Checks the board is 6x6 or 9x9 with values in 0..size and returns its size.</summary>
+        </member>
+        <member name="M:EndlessSudokuLibrary.SudokuBoard.CandidateMask(System.Int32[0:,0:],System.Int32,System.Int32)">
+            <summary>Bitmask of digits (bit d-1 = digit d) not yet used in the cell's row, column and box.</summary>
+        </member>
+        <member name="T:EndlessSudokuLibrary.SudokuEngine">
+            <summary>
+            Bitmask-based backtracking solver (picks the most constrained cell first).
+            Used to build a full grid, to solve puzzles and to count solutions (up to a limit).
+            Not thread-safe: create one instance per call.
+            </summary>
+        </member>
+        <member name="M:EndlessSudokuLibrary.SudokuEngine.GenerateFullGrid(System.Random)">
+            <summary>Returns a random, fully solved grid.</summary>
+        </member>
+        <member name="M:EndlessSudokuLibrary.SudokuEngine.HasUniqueSolution(System.Int32[])">
+            <summary>True if the grid is consistent and has exactly one solution.</summary>
+        </member>
+        <member name="M:EndlessSudokuLibrary.SudokuEngine.CountSolutions(System.Int32[],System.Int32)">
+            <summary>Counts solutions, stopping at <paramref name="limit"/>. Returns 0 for conflicting grids.</summary>
+        </member>
+        <member name="M:EndlessSudokuLibrary.SudokuEngine.Solve(System.Int32[])">
+            <summary>Returns a solution, or null if the grid has none.</summary>
+        </member>
+        <member name="M:EndlessSudokuLibrary.SudokuEngine.IsConsistent(System.Int32[])">
+            <summary>True if no digit appears twice in a row, column or box.</summary>
+        </member>
+        <member name="M:EndlessSudokuLibrary.SudokuEngine.Search(System.Int32,System.Random)">
+            <summary>
+            Counts solutions up to <paramref name="limit"/>. When <paramref name="rng"/> is supplied,
+            digits are tried in random order. When capturing, the solution found is stored in _snapshot.
+            </summary>
+        </member>
+        <member name="T:EndlessSudokuLibrary.SudokuConfig">
+            <summary>Configuration for the generator.</summary>
+        </member>
+        <member name="P:EndlessSudokuLibrary.SudokuConfig.Size">
+            <summary>Board size: 6 (2x3 boxes) or 9 (3x3 boxes).</summary>
+        </member>
+        <member name="P:EndlessSudokuLibrary.SudokuConfig.Difficulty">
+            <summary>Difficulty from 1 (easiest, most visible cells) to 10 (hardest, fewest visible cells).</summary>
+        </member>
+        <member name="P:EndlessSudokuLibrary.SudokuConfig.Seed">
+            <summary>Optional seed for reproducible puzzles.</summary>
+        </member>
+        <member name="T:EndlessSudokuLibrary.SudokuResult">
+            <summary>The generated puzzle and its unique solution.</summary>
+        </member>
+        <member name="P:EndlessSudokuLibrary.SudokuResult.Puzzle">
+            <summary>The puzzle. Hidden cells are 0.</summary>
+        </member>
+        <member name="P:EndlessSudokuLibrary.SudokuResult.Solution">
+            <summary>The fully solved board.</summary>
+        </member>
+        <member name="P:EndlessSudokuLibrary.SudokuResult.Clues">
+            <summary>Number of visible cells (clues) in <see cref="P:EndlessSudokuLibrary.SudokuResult.Puzzle"/>.</summary>
+        </member>
+        <member name="P:EndlessSudokuLibrary.SudokuResult.TargetClues">
+            <summary>Number of clues the difficulty level was aiming for.</summary>
+        </member>
+        <member name="P:EndlessSudokuLibrary.SudokuResult.Size">
+            <summary>Board size (6 or 9).</summary>
+        </member>
+        <member name="P:EndlessSudokuLibrary.SudokuResult.Difficulty">
+            <summary>The difficulty level (1..10) used to generate this puzzle.</summary>
+        </member>
+        <member name="P:EndlessSudokuLibrary.SudokuResult.Seed">
+            <summary>
+            The seed used to generate this puzzle. Pass it back in <see cref="P:EndlessSudokuLibrary.SudokuConfig.Seed"/>
+            (with the same size and difficulty) to generate the exact same puzzle again.
+            </summary>
+        </member>
+        <member name="M:EndlessSudokuLibrary.SudokuResult.IsCorrect(System.Int32,System.Int32,System.Int32)">
+            <summary>True if <paramref name="value"/> is the correct digit for the given cell.</summary>
+        </member>
+        <member name="M:EndlessSudokuLibrary.SudokuResult.IsSolvedBy(System.Int32[0:,0:])">
+            <summary>True if <paramref name="board"/> is completely filled and matches the solution.</summary>
+        </member>
+        <member name="M:EndlessSudokuLibrary.SudokuResult.GetHint(System.Int32[0:,0:])">
+            <summary>
+            Suggests the next move for a player's current <paramref name="board"/>.
+            A wrong digit is reported first (<see cref="P:EndlessSudokuLibrary.SudokuHint.IsCorrection"/> = true).
+            Otherwise it picks the empty cell with the fewest possible digits, which is usually the easiest one to fill.
+            Returns null when the board is already solved.
+            </summary>
+        </member>
+        <member name="M:EndlessSudokuLibrary.SudokuResult.ToString">
+            <summary>The puzzle as readable text (see <see cref="M:EndlessSudokuLibrary.SudokuBoard.ToText(System.Int32[0:,0:])"/>).</summary>
+        </member>
+        <member name="T:EndlessSudokuLibrary.SudokuHint">
+            <summary>A suggested move returned by <see cref="M:EndlessSudokuLibrary.SudokuResult.GetHint(System.Int32[0:,0:])"/>.</summary>
+        </member>
+        <member name="P:EndlessSudokuLibrary.SudokuHint.Row">
+            <summary>Row of the cell (0-based).</summary>
+        </member>
+        <member name="P:EndlessSudokuLibrary.SudokuHint.Column">
+            <summary>Column of the cell (0-based).</summary>
+        </member>
+        <member name="P:EndlessSudokuLibrary.SudokuHint.Value">
+            <summary>The correct digit for the cell.</summary>
+        </member>
+        <member name="P:EndlessSudokuLibrary.SudokuHint.IsCorrection">
+            <summary>True if the cell currently holds a wrong digit that should be replaced.</summary>
+        </member>
+        <member name="M:EndlessSudokuLibrary.SudokuHint.ToString">
+            <inheritdoc />
+        </member>
+        <member name="T:EndlessSudokuLibrary.SudokuGenerator">
+            <summary>Generates Sudoku puzzles that are guaranteed to have exactly one solution.</summary>
+        </member>
+        <member name="M:EndlessSudokuLibrary.SudokuGenerator.Generate(EndlessSudokuLibrary.SudokuConfig)">
+            <summary>Generates a puzzle using the given configuration.</summary>
+            <exception cref="T:System.ArgumentNullException"><paramref name="config"/> is null.</exception>
+            <exception cref="T:System.ArgumentOutOfRangeException">Size or difficulty is out of range.</exception>
+        </member>
+        <member name="M:EndlessSudokuLibrary.SudokuGenerator.Generate(System.Int32,System.Int32,System.Nullable{System.Int32})">
+            <summary>Generates a puzzle. Shortcut for <see cref="M:EndlessSudokuLibrary.SudokuGenerator.Generate(EndlessSudokuLibrary.SudokuConfig)"/>.</summary>
+            <param name="size">6 or 9.</param>
+            <param name="difficulty">1 (easy) to 10 (hard).</param>
+            <param name="seed">Optional seed for a reproducible puzzle.</param>
+        </member>
+        <member name="M:EndlessSudokuLibrary.SudokuGenerator.Generate(EndlessSudokuLibrary.SudokuConfig,System.Threading.CancellationToken)">
+            <summary>Generates a puzzle and stops early if <paramref name="cancellationToken"/> is cancelled.</summary>
+            <exception cref="T:System.OperationCanceledException">The operation was cancelled.</exception>
+        </member>
+        <member name="M:EndlessSudokuLibrary.SudokuGenerator.GenerateAsync(EndlessSudokuLibrary.SudokuConfig,System.Threading.CancellationToken)">
+            <summary>
+            Generates a puzzle on a background thread, so UI apps (MAUI, WPF, Unity, ...) stay responsive.
+            </summary>
+        </member>
+        <member name="M:EndlessSudokuLibrary.SudokuGenerator.GenerateMany(EndlessSudokuLibrary.SudokuConfig,System.Int32)">
+            <summary>
+            Generates <paramref name="count"/> puzzles with the same size and difficulty.
+            If <see cref="P:EndlessSudokuLibrary.SudokuConfig.Seed"/> is set, the whole set is reproducible.
+            </summary>
+        </member>
+        <member name="M:EndlessSudokuLibrary.SudokuGenerator.TargetClues(System.Int32,System.Int32)">
+            <summary>Maps difficulty 1..10 to a number of visible cells (linear interpolation).</summary>
+        </member>
+        <member name="M:EndlessSudokuLibrary.SudokuGenerator.RemoveCells(System.Int32[],EndlessSudokuLibrary.SudokuEngine,System.Random,System.Int32,System.Threading.CancellationToken)">
+            <summary>
+            Visits cells in random order and hides each one only if the puzzle still has exactly one solution.
+            Returns the number of remaining clues.
+            </summary>
+        </member>
+        <member name="T:EndlessSudokuLibrary.SudokuSolver">
+            <summary>
+            Solves and checks any 6x6 or 9x9 board, including ones not made by <see cref="T:EndlessSudokuLibrary.SudokuGenerator"/>.
+            Boards are <c>int[row, column]</c> with 0 for empty cells. All methods are thread-safe.
+            </summary>
+        </member>
+        <member name="M:EndlessSudokuLibrary.SudokuSolver.Solve(System.Int32[0:,0:])">
+            <summary>Solves <paramref name="puzzle"/>. Returns null if it has no solution. The input is not changed.</summary>
+            <remarks>If the puzzle has several solutions, one of them is returned. Use <see cref="M:EndlessSudokuLibrary.SudokuSolver.HasUniqueSolution(System.Int32[0:,0:])"/> to check.</remarks>
+            <exception cref="T:System.ArgumentException">The board is not 6x6 or 9x9, or contains a value outside 0..size.</exception>
+        </member>
+        <member name="M:EndlessSudokuLibrary.SudokuSolver.TrySolve(System.Int32[0:,0:],System.Int32[0:,0:]@)">
+            <summary>Tries to solve <paramref name="puzzle"/>. Returns false if it has no solution.</summary>
+        </member>
+        <member name="M:EndlessSudokuLibrary.SudokuSolver.CountSolutions(System.Int32[0:,0:],System.Int32)">
+            <summary>Counts the solutions of <paramref name="puzzle"/>, stopping once <paramref name="limit"/> is reached.</summary>
+            <param name="puzzle">The board to check.</param>
+            <param name="limit">Stop counting at this number (counting all solutions of an almost empty board would take forever).</param>
+        </member>
+        <member name="M:EndlessSudokuLibrary.SudokuSolver.HasUniqueSolution(System.Int32[0:,0:])">
+            <summary>True if <paramref name="puzzle"/> has exactly one solution.</summary>
+        </member>
+        <member name="M:EndlessSudokuLibrary.SudokuSolver.IsValid(System.Int32[0:,0:])">
+            <summary>True if no digit appears twice in any row, column or box. Empty cells are allowed.</summary>
+            <remarks>A valid board can still be unsolvable. Use <see cref="M:EndlessSudokuLibrary.SudokuSolver.Solve(System.Int32[0:,0:])"/> to check that.</remarks>
+        </member>
+        <member name="M:EndlessSudokuLibrary.SudokuSolver.IsSolved(System.Int32[0:,0:])">
+            <summary>True if <paramref name="board"/> is completely filled and follows all Sudoku rules.</summary>
+        </member>
+    </members>
+</doc>

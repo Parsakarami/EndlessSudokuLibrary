@@ -22,3 +22,5 @@
 /Users/parsa/Documents/My Repos/DotNet/Nuget/EndlessSudoku/EndlessSudokuLibrary/obj/Debug/net10.0/refint/EndlessSudoku.dll
 /Users/parsa/Documents/My Repos/DotNet/Nuget/EndlessSudoku/EndlessSudokuLibrary/obj/Debug/net10.0/EndlessSudoku.pdb
 /Users/parsa/Documents/My Repos/DotNet/Nuget/EndlessSudoku/EndlessSudokuLibrary/obj/Debug/net10.0/ref/EndlessSudoku.dll
+/Users/parsa/Documents/My Repos/DotNet/Nuget/EndlessSudoku/EndlessSudokuLibrary/bin/Debug/net10.0/EndlessSudoku.xml
+/Users/parsa/Documents/My Repos/DotNet/Nuget/EndlessSudoku/EndlessSudokuLibrary/obj/Debug/net10.0/EndlessSudoku.xml
