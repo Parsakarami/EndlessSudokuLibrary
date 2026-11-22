@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyDescriptionAttribute("Sudoku generation library for C#")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.1.2.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.1.2+f72bab383400cee0af72fcc4734fdb620ed8e1ed")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.1.2+f0190cff8d173d6626b4bd3ac148e74ea494551d")]
 [assembly: System.Reflection.AssemblyProductAttribute("EndlessSudoku")]
 [assembly: System.Reflection.AssemblyTitleAttribute("EndlessSudoku")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.1.2.0")]
